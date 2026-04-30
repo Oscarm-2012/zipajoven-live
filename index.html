@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política Pública de Juventudes · Zipaquirá</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --cream: #0a0a0a;
+    --warm: #111111;
+    --gold: #00e676;
+    --gold-light: #69f0ae;
+    --brown: #00e676;
+    --brown-mid: #00c853;
+    --green: #00bcd4;
+    --green-light: #4dd0e1;
+    --rust: #ff5252;
+    --text: #ffffff;
+    --text-mid: #cccccc;
+    --text-light: #888888;
+    --card: #161616;
+    --border: #2a2a2a;
+    --shadow: 0 2px 24px rgba(0,230,118,0.08);
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #0a0a0a;
+    color: #ffffff;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: #000000;
+    border-bottom: 1px solid #00e676;
+    color: #ffffff;
+    padding: 28px 40px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,230,118,0.15);
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .header-title span { color: var(--gold-light); }
+  .header-sub {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: #6ee76e;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .refresh-btn {
+    background: #00e676;
+    color: #00e676;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .refresh-btn:hover { background: #69f0ae; }
+  .last-update {
+    font-size: 0.7rem;
+    opacity: 0.55;
+  }
+
+  /* LOADING */
+  #loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    gap: 16px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { color: #cccccc; font-size: 0.9rem; }
+
+  /* ERROR */
+  #error {
+    display: none;
+    max-width: 500px;
+    margin: 60px auto;
+    background: #fff3f0;
+    border: 1px solid #ffccc7;
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+  }
+  #error h3 { color: var(--rust); margin-bottom: 8px; }
+  #error p { font-size: 0.85rem; color: #cccccc; }
+
+  /* MAIN */
+  main {
+    display: none;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* FILTERS */
+  .filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+  }
+  .filter-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-light);
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-group label {
+    font-size: 0.78rem;
+    color: #cccccc;
+    font-weight: 500;
+  }
+  .filter-group select {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    background: #0a0a0a;
+    color: #ffffff;
+    cursor: pointer;
+  }
+  .n-display {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: #cccccc;
+  }
+  .n-display strong { color: #00e676; font-weight: 700; }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .kpi-icon { font-size: 1.3rem; margin-bottom: 6px; }
+  .kpi-val {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00e676;
+    line-height: 1;
+  }
+  .kpi-label {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    padding-bottom: 0;
+  }
+  .tab {
+    padding: 10px 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+  .tab:hover { color: #00e676; }
+  .tab.active {
+    color: #00e676;
+    border-bottom-color: var(--gold);
+  }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
+  .section-grid.wide { grid-template-columns: 1fr; }
+  .section-grid.three { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #00e676;
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 220px;
+  }
+  .chart-wrap.tall { height: 320px; }
+  .chart-wrap.short { height: 170px; }
+
+  /* INSIGHT */
+  .insight {
+    background: linear-gradient(135deg, #1a1a1a, #0d2018);
+    border-left: 3px solid #00e676;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    color: #cccccc;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .insight strong { color: #00e676; }
+
+  /* HORIZONTAL BARS */
+  .hbar-list { display: flex; flex-direction: column; gap: 10px; }
+  .hbar-item {}
+  .hbar-label {
+    font-size: 0.76rem;
+    color: #cccccc;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .hbar-label span { font-weight: 600; color: #00e676; }
+  .hbar-track {
+    height: 8px;
+    background: var(--warm);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .hbar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00e676, #69f0ae);
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+  .hbar-fill.green { background: linear-gradient(90deg, #00bcd4, #4dd0e1); }
+  .hbar-fill.rust { background: linear-gradient(90deg, #ff5252, #ff8a80); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-title">🏙️ Política Pública de Juventudes · <span>Zipaquirá</span></div>
+      <div class="header-sub">Dashboard de resultados — Encuesta participativa 2026</div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div> En vivo</div>
+      <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+      <div class="last-update" id="lastUpdate">Cargando...</div>
+    </div>
+  </div>
+</header>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Conectando con los datos de la encuesta...</p>
+</div>
+
+<div id="error">
+  <h3>⚠️ Error de conexión</h3>
+  <p id="errorMsg">No se pudo cargar los datos. Verifica que el Apps Script esté publicado correctamente.</p>
+</div>
+
+<main id="main">
+  <!-- FILTERS -->
+  <div class="filters">
+    <span class="filter-label">Filtrar por</span>
+    <div class="filter-group">
+      <label>Género</label>
+      <select id="fGenero" onchange="applyFilters()">
+        <option value="">Todos</option>
+        <option value="Hombre">Hombre</option>
+        <option value="Mujer">Mujer</option>
+        <option value="No binario / género diverso">No binario/NB</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Zona</label>
+      <select id="fZona" onchange="applyFilters()">
+        <option value="">Todas</option>
+        <option value="Zona urbana">Urbana</option>
+        <option value="Zona rural">Rural</option>
+        <option value="Me muevo entre ambas">Ambas</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Edad</label>
+      <select id="fEdad" onchange="applyFilters()">
+        <option value="">Todas</option>
+        <option value="14-15">14–15</option>
+        <option value="16-17">16–17</option>
+        <option value="18+">18+</option>
+      </select>
+    </div>
+    <div class="n-display">Mostrando <strong id="nCount">0</strong> respuestas</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-val" id="kTotal">—</div><div class="kpi-label">Respuestas válidas</div></div>
+    <div class="kpi"><div class="kpi-icon">📅</div><div class="kpi-val" id="kEdad">—</div><div class="kpi-label">Edad promedio</div></div>
+    <div class="kpi"><div class="kpi-icon">🏙️</div><div class="kpi-val" id="kUrbana">—</div><div class="kpi-label">Zona urbana</div></div>
+    <div class="kpi"><div class="kpi-icon">🎓</div><div class="kpi-val" id="kEstudia">—</div><div class="kpi-label">Solo estudian</div></div>
+    <div class="kpi"><div class="kpi-icon">⚖️</div><div class="kpi-val" id="kGenero">—</div><div class="kpi-label">% H / % M</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('perfil', this)">👥 Perfil</button>
+    <button class="tab" onclick="showTab('empleo', this)">💼 Empleo</button>
+    <button class="tab" onclick="showTab('salud', this)">🧠 Salud Mental</button>
+    <button class="tab" onclick="showTab('seguridad', this)">🔐 Seguridad</button>
+    <button class="tab" onclick="showTab('participacion', this)">🗳️ Participación</button>
+    <button class="tab" onclick="showTab('prioridades', this)">⭐ Prioridades</button>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="section active" id="sec-perfil">
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">Distribución por edad</div>
+        <div class="card-sub">Número de jóvenes encuestados por año de edad</div>
+        <div class="chart-wrap"><canvas id="cEdad"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Identidad de género</div>
+        <div class="card-sub">¿Con qué género te identificas?</div>
+        <div class="chart-wrap"><canvas id="cGenero"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Zona de residencia</div>
+        <div class="card-sub">¿Vives en zona urbana o rural?</div>
+        <div class="chart-wrap"><canvas id="cZona"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Ocupación principal</div>
+        <div class="card-sub">¿Cuál es tu ocupación actualmente?</div>
+        <div class="chart-wrap tall"><canvas id="cOcupacion"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPLEO -->
+  <div class="section" id="sec-empleo">
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">Mayor barrera para conseguir empleo digno</div>
+        <div class="card-sub">¿Cuál es la mayor barrera siendo joven en Zipaquirá?</div>
+        <div class="chart-wrap tall"><canvas id="cBarrera"></canvas></div>
+        <div class="insight" id="iBarrera"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Apoyo necesario para empleo / emprendimiento</div>
+        <div class="card-sub">¿Qué tipo de apoyo necesitarías? (multiopción)</div>
+        <div class="chart-wrap tall"><canvas id="cApoyo"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">¿Estudios útiles para el mercado laboral?</div>
+        <div class="card-sub">¿Sientes que lo que estudias es útil para las empresas de Zipaquirá?</div>
+        <div class="chart-wrap short"><canvas id="cEstudios"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">¿Existen estrategias institucionales de apoyo?</div>
+        <div class="card-sub">¿Consideras que existen estrategias de apoyo técnico y financiero?</div>
+        <div class="chart-wrap short"><canvas id="cEstrategias"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALUD MENTAL -->
+  <div class="section" id="sec-salud">
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">Malestar emocional en los últimos 6 meses</div>
+        <div class="card-sub">¿Con qué frecuencia has sentido malestar emocional que afecta tu vida diaria?</div>
+        <div class="chart-wrap"><canvas id="cMalestar"></canvas></div>
+        <div class="insight" id="iMalestar"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">¿Has ido alguna vez al psicólogo?</div>
+        <div class="card-sub">Acceso real a atención psicológica</div>
+        <div class="chart-wrap short"><canvas id="cPsicologo"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Situaciones que afectan la salud mental</div>
+        <div class="card-sub">¿Cuáles situaciones afectan más a los jóvenes? (multiopción)</div>
+        <div class="chart-wrap tall"><canvas id="cSitSalud"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">¿A quién acudirías ante un problema emocional serio?</div>
+        <div class="card-sub">Redes de apoyo emocional reportadas</div>
+        <div class="chart-wrap"><canvas id="cApoioEmocional"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGURIDAD -->
+  <div class="section" id="sec-seguridad">
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">Situaciones problemáticas en el barrio</div>
+        <div class="card-sub">% que responde "Frecuentemente" o "Siempre"</div>
+        <div id="hbarBarrio" class="hbar-list"></div>
+        <div class="insight" id="iBarrio"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Dimensiones del hogar</div>
+        <div class="card-sub">% positivo (responde "Siempre" o "Casi siempre")</div>
+        <div id="hbarHogar" class="hbar-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">¿Violencia familiar o de pareja en el último año?</div>
+        <div class="card-sub">¿Has vivido o presenciado violencia en tu familia o pareja?</div>
+        <div class="chart-wrap short"><canvas id="cViolencia"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Servicios de salud más urgentes</div>
+        <div class="card-sub">¿Qué programas de salud son más urgentes para los jóvenes? (multiopción)</div>
+        <div class="chart-wrap tall"><canvas id="cSaludUrgente"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTICIPACIÓN -->
+  <div class="section" id="sec-participacion">
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">Conocimiento del CMJ y Plataforma de Juventudes</div>
+        <div class="card-sub">¿Conoces instancias como el Consejo Municipal de Juventud?</div>
+        <div class="chart-wrap short"><canvas id="cCMJ"></canvas></div>
+        <div class="insight" id="iCMJ"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Posición frente a la participación</div>
+        <div class="card-sub">¿Cuál describe mejor tu posición en espacios comunitarios?</div>
+        <div class="chart-wrap tall"><canvas id="cPosicion"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">¿Qué tan incluido/a te sientes en las decisiones?</div>
+        <div class="card-sub">En tu barrio y comunidad en Zipaquirá</div>
+        <div class="chart-wrap short"><canvas id="cIncluido"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Factores que dificultan la participación</div>
+        <div class="card-sub">¿Qué factores dificultan que los jóvenes participen? (multiopción)</div>
+        <div class="chart-wrap tall"><canvas id="cFactores"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIORIDADES -->
+  <div class="section" id="sec-prioridades">
+    <div class="section-grid">
+      <div class="card" style="grid-column: 1/-1">
+        <div class="card-title">Líneas de acción priorizadas para la PP Juventudes</div>
+        <div class="card-sub">¿Cuáles priorizarías? (multiopción) — % del total de encuestados</div>
+        <div class="chart-wrap tall"><canvas id="cPrioridades"></canvas></div>
+        <div class="insight" id="iPrioridades"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Identificación con Zipaquirá como proyecto de vida</div>
+        <div class="card-sub">¿Qué tan identificado/a te sientes con Zipaquirá?</div>
+        <div class="chart-wrap"><canvas id="cIdent"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Mayor obstáculo para la independencia económica</div>
+        <div class="card-sub">¿Cuál es el mayor obstáculo para tu independencia o vivienda propia?</div>
+        <div class="chart-wrap tall"><canvas id="cObstaculo"></canvas></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbxP3lwo2M6dHH6p79fp8j8wn6EOwQShrha1H31ne3TfOxZe7_FFs9gyP42MecjbRh_e/exec';
+
+const COLORS = {
+  gold: ['#00e676','#00c853','#69f0ae','#b9f6ca','#00bfa5','#1de9b6'],
+  green: ['#00bcd4','#00acc1','#4dd0e1','#80deea','#26c6da','#00e5ff'],
+  mixed: ['#00e676','#00bcd4','#ff5252','#e040fb','#ffab40','#40c4ff'],
+  warm: ['#00e676','#ff5252','#ffab40','#e040fb','#00bcd4','#40c4ff'],
+};
+
+let allData = [];
+let filteredData = [];
+let charts = {};
+
+// Column key shortcuts
+const COL = {
+  acepta: '¿Aceptas participar voluntariamente en esta encuesta?',
+  edad: 'Escribe tu edad:',
+  genero: '¿Con qué género te identificas?  ',
+  zona: '¿Vives en zona urbana o rural?  ',
+  ocupacion: '¿Cuál es tu ocupación principal actualmente?  ',
+  barrera: '¿Cuál es la mayor barrera para conseguir un empleo digno siendo joven en Zipaquirá?  ',
+  apoyo: '¿Qué tipo de apoyo necesitarías para mejorar tu situación laboral o emprender? Puedes marcar varias opciones ',
+  estudios: '¿Sientes que lo que estudias o estudiaste es útil para las empresas o el mercado laboral de Zipaquirá?  ',
+  estrategias: '¿Consideras que existen estrategias institucionales de apoyo técnico y financiero en Zipaquirá?  ',
+  malestar: 'En los últimos 6 meses, ¿con qué frecuencia has sentido malestar emocional que afecta tu vida diaria?',
+  psicologo: '¿Alguna vez has ido al psicólogo?  ',
+  sitSalud: '¿Cuáles de estas situaciones afectan más la salud mental de los jóvenes en Zipaquirá?  Puedes marcar más de una opción    ',
+  apoyoEmocional: 'Si tuvieras un problema emocional serio, ¿a quién acudirías primero?  ',
+  barrio_spa: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Consumo de sustancias psicoactivas]',
+  barrio_hurto: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Hurtos o robos en el sector]',
+  barrio_rinas: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Riñas o conflictos violentos]',
+  barrio_pandillas: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Presencia de pandillas/grupos delincuenciales]',
+  barrio_vif: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Violencia intrafamiliar o de pareja]',
+  barrio_acoso: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Acoso o violencia contra las mujeres]',
+  barrio_ilum: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Falta de iluminación o espacios inseguros]',
+  barrio_policia: '¿Con qué frecuencia ocurren las siguientes situaciones en tu barrio o vereda? [Presencia policial insuficiente]',
+  hogar_seg: ' ¿Cómo describes tu hogar en las siguientes dimensiones?   [Seguridad física en mi hogar]',
+  hogar_respeto: ' ¿Cómo describes tu hogar en las siguientes dimensiones?   [Respeto y convivencia en mi hogar]',
+  hogar_inseg: ' ¿Cómo describes tu hogar en las siguientes dimensiones?   [Me siento inseguro/a en mi hogar]',
+  violencia: '¿Has vivido o presenciado violencia física o psicológica en tu familia o pareja en el último año?  ',
+  saludUrgente: ' ¿Qué programas o servicios de salud son más urgentes para los jóvenes de Zipaquirá? Puedes marcar más de una opción ',
+  CMJ: '¿Conoces instancias como el Consejo Municipal de Juventud y la Plataforma de Juventudes?  ',
+  posicion: '¿Cuál describe mejor tu posición frente a la participación en espacios comunitarios formales?  ',
+  incluido: '¿Qué tan incluido/a te sientes como joven en las decisiones que afectan tu barrio y comunidad en Zipaquirá?  ',
+  factores: '¿Qué factores dificultan que los jóvenes participen en espacios de decisión o actividades comunitarias en Zipaquirá? Puedes marcar varias opciones ',
+  prioridades: 'De estas líneas de acción, ¿cuáles priorizarías en la Política Pública de Juventudes de Zipaquirá? Puedes seleccionar varias opciones',
+  ident: '¿Qué tan identificado/a te sientes con Zipaquirá como un lugar donde puedes construir tu proyecto de vida?  ',
+  obstaculo: ' ¿Cuál es el mayor obstáculo para lograr tu independencia económica o acceder a vivienda propia?  ',
+};
+
+async function loadData() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('error').style.display = 'none';
+
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.json();
+
+    // Filter valid responses (accepted participation)
+    allData = raw.filter(r => {
+      const v = r[COL.acepta];
+      return v && v.toString().toLowerCase().includes('acepto');
+    });
+
+    document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-CO');
+    applyFilters();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('errorMsg').textContent = 'Error: ' + e.message;
+  }
+}
+
+function parseAge(v) {
+  if (!v) return null;
+  const n = parseInt(v.toString().replace(/[^0-9]/g, ''));
+  return (n >= 10 && n <= 35) ? n : null;
+}
+
+function applyFilters() {
+  const g = document.getElementById('fGenero').value;
+  const z = document.getElementById('fZona').value;
+  const e = document.getElementById('fEdad').value;
+
+  filteredData = allData.filter(r => {
+    if (g && !r[COL.genero]?.toString().includes(g)) return false;
+    if (z && r[COL.zona]?.toString().trim() !== z) return false;
+    if (e) {
+      const age = parseAge(r[COL.edad]);
+      if (!age) return false;
+      if (e === '14-15' && !(age >= 14 && age <= 15)) return false;
+      if (e === '16-17' && !(age >= 16 && age <= 17)) return false;
+      if (e === '18+' && age < 18) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('nCount').textContent = filteredData.length;
+  updateKPIs();
+  renderAll();
+}
+
+function updateKPIs() {
+  const n = filteredData.length;
+  document.getElementById('kTotal').textContent = n;
+
+  const ages = filteredData.map(r => parseAge(r[COL.edad])).filter(Boolean);
+  const avgAge = ages.length ? (ages.reduce((a,b)=>a+b,0)/ages.length).toFixed(1) : '—';
+  document.getElementById('kEdad').textContent = avgAge;
+
+  const urbana = filteredData.filter(r => r[COL.zona]?.toString().trim() === 'Zona urbana').length;
+  document.getElementById('kUrbana').textContent = n ? Math.round(urbana/n*100)+'%' : '—';
+
+  const estudia = filteredData.filter(r => {
+    const v = r[COL.ocupacion]?.toString().toLowerCase() || '';
+    return v.includes('estudi') && !v.includes('trabaj');
+  }).length;
+  document.getElementById('kEstudia').textContent = n ? Math.round(estudia/n*100)+'%' : '—';
+
+  const hombres = filteredData.filter(r => r[COL.genero]?.toString().includes('Hombre')).length;
+  const mujeres = filteredData.filter(r => r[COL.genero]?.toString().includes('Mujer')).length;
+  document.getElementById('kGenero').textContent = n ? Math.round(hombres/n*100)+'% / '+Math.round(mujeres/n*100)+'%' : '—';
+}
+
+const INVALID = ['opción 2', 'opción 1', 'opción 3', 'option 2', 'option 1'];
+function isInvalid(v) { return INVALID.some(bad => v.toLowerCase().trim() === bad); }
+
+function freq(data, col) {
+  const counts = {};
+  data.forEach(r => {
+    const v = (r[col] || '').toString().trim();
+    if (v && !isInvalid(v)) counts[v] = (counts[v]||0) + 1;
+  });
+  return counts;
+}
+
+function freqMulti(data, col) {
+  const counts = {};
+  data.forEach(r => {
+    const v = (r[col] || '').toString();
+    v.split(',').forEach(opt => {
+      const t = opt.trim();
+      if (t && !isInvalid(t)) counts[t] = (counts[t]||0) + 1;
+    });
+  });
+  return counts;
+}
+
+function sortedEntries(obj, limit=10) {
+  return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0, limit);
+}
+
+function wrapLabel(str, maxLen=38) {
+  if (!str || str.length <= maxLen) return str;
+  const words = str.split(' ');
+  let lines = [], cur = '';
+  words.forEach(w => {
+    if ((cur + ' ' + w).trim().length > maxLen) {
+      if (cur) lines.push(cur.trim());
+      cur = w;
+    } else { cur = (cur + ' ' + w).trim(); }
+  });
+  if (cur) lines.push(cur.trim());
+  return lines;
+}
+
+function makeChart(id, type, labels, values, colors, opts={}) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id)?.getContext('2d');
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: type === 'line' ? colors[0] : 'transparent',
+        borderWidth: type === 'bar' ? 0 : 2,
+        borderRadius: type === 'bar' ? 6 : 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: type === 'pie' || type === 'doughnut', position: 'right', labels: { font: { family: 'Plus Jakarta Sans', size: 11 }, padding: 10, boxWidth: 12 } },
+        tooltip: { callbacks: {
+          label: ctx => {
+            const v = ctx.raw;
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return ` ${v} (${Math.round(v/total*100)}%)`;
+          }
+        }}
+      },
+      scales: (type === 'bar' || type === 'bar-h') ? {
+        x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#888888', maxRotation: 0 } },
+        y: { grid: { color: '#2a2a2a' }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#cccccc' }, afterFit: opts.horizontal ? function(axis) { axis.width = 220; } : undefined },
+        ...opts.scales
+      } : {},
+      indexAxis: opts.horizontal ? 'y' : 'x',
+      ...opts.extra
+    }
+  });
+}
+
+function hbars(containerId, items, colorClass='') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const max = Math.max(...items.map(i=>i[1]));
+  el.innerHTML = items.map(([label, val]) => `
+    <div class="hbar-item">
+      <div class="hbar-label">${label.length > 45 ? label.slice(0,45)+'…' : label} <span>${val}%</span></div>
+      <div class="hbar-track"><div class="hbar-fill ${colorClass}" style="width:${Math.round(val/max*100)}%"></div></div>
+    </div>
+  `).join('');
+}
+
+function topInsight(el, entries, prefix='') {
+  if (!el || !entries.length) return;
+  const top = entries[0];
+  el.innerHTML = `<strong>Hallazgo clave:</strong> ${prefix} <em>${top[0]}</em> es la respuesta más frecuente (${top[1]} jóvenes).`;
+}
+
+function renderAll() {
+  const d = filteredData;
+  const n = d.length || 1;
+
+  // === PERFIL ===
+  // Edad
+  const ageCounts = {};
+  d.forEach(r => { const a = parseAge(r[COL.edad]); if(a) ageCounts[a] = (ageCounts[a]||0)+1; });
+  const ageKeys = Object.keys(ageCounts).map(Number).sort((a,b)=>a-b);
+  makeChart('cEdad','bar', ageKeys, ageKeys.map(k=>ageCounts[k]), ageKeys.map((_,i)=>COLORS.gold[i%6]));
+
+  // Género
+  const gf = freq(d, COL.genero);
+  const ge = sortedEntries(gf);
+  makeChart('cGenero','doughnut', ge.map(e=>e[0]), ge.map(e=>e[1]), COLORS.mixed);
+
+  // Zona
+  const zf = freq(d, COL.zona);
+  const ze = sortedEntries(zf);
+  makeChart('cZona','pie', ze.map(e=>e[0]), ze.map(e=>e[1]), [COLORS.gold[0], COLORS.green[0], COLORS.warm[2]]);
+
+  // Ocupación
+  const of = freq(d, COL.ocupacion);
+  const oe = sortedEntries(of, 8);
+  makeChart('cOcupacion','bar', oe.map(e=>wrapLabel(e[0])), oe.map(e=>e[1]), COLORS.gold, { horizontal: true });
+
+  // === EMPLEO ===
+  const bf = freq(d, COL.barrera);
+  const be = sortedEntries(bf, 7);
+  makeChart('cBarrera','bar', be.map(e=>wrapLabel(e[0])), be.map(e=>e[1]), COLORS.warm, { horizontal: true });
+  topInsight(document.getElementById('iBarrera'), be, 'La mayor barrera reportada es');
+
+  const af = freqMulti(d, COL.apoyo);
+  const ae = sortedEntries(af, 7);
+  makeChart('cApoyo','bar', ae.map(e=>wrapLabel(e[0])), ae.map(e=>e[1]), COLORS.green, { horizontal: true });
+
+  const ef = freq(d, COL.estudios);
+  const ee = sortedEntries(ef);
+  makeChart('cEstudios','doughnut', ee.map(e=>e[0]), ee.map(e=>e[1]), COLORS.mixed);
+
+  const estf = freq(d, COL.estrategias);
+  const este = sortedEntries(estf);
+  makeChart('cEstrategias','pie', este.map(e=>e[0]), este.map(e=>e[1]), [COLORS.gold[0], COLORS.green[0], COLORS.warm[2]]);
+
+  // === SALUD MENTAL ===
+  const mf = freq(d, COL.malestar);
+  const me = sortedEntries(mf);
+  makeChart('cMalestar','bar', me.map(e=>e[0]), me.map(e=>e[1]), COLORS.warm);
+  const frecuente = d.filter(r => {
+    const v = (r[COL.malestar]||'').toLowerCase();
+    return v.includes('frecuente') || v.includes('siempre');
+  }).length;
+  const iMal = document.getElementById('iMalestar');
+  if (iMal) iMal.innerHTML = `<strong>Hallazgo clave:</strong> El <strong>${Math.round(frecuente/n*100)}%</strong> de jóvenes reporta malestar emocional frecuente o constante.`;
+
+  const pf = freq(d, COL.psicologo);
+  const pe = sortedEntries(pf);
+  makeChart('cPsicologo','doughnut', pe.map(e=>e[0]), pe.map(e=>e[1]), COLORS.mixed);
+
+  const ssf = freqMulti(d, COL.sitSalud);
+  const sse = sortedEntries(ssf, 7);
+  makeChart('cSitSalud','bar', sse.map(e=>wrapLabel(e[0])), sse.map(e=>e[1]), COLORS.gold, { horizontal: true });
+
+  const aef = freq(d, COL.apoyoEmocional);
+  const aee = sortedEntries(aef);
+  makeChart('cApoioEmocional','bar', aee.map(e=>wrapLabel(e[0])), aee.map(e=>e[1]), COLORS.green, { horizontal: true });
+
+  // === SEGURIDAD ===
+  const barrioItems = [
+    ['Consumo de SPA', COL.barrio_spa],
+    ['Hurtos o robos', COL.barrio_hurto],
+    ['Riñas violentas', COL.barrio_rinas],
+    ['Pandillas', COL.barrio_pandillas],
+    ['Violencia intrafamiliar', COL.barrio_vif],
+    ['Acoso a mujeres', COL.barrio_acoso],
+    ['Falta de iluminación', COL.barrio_ilum],
+    ['Presencia policial insuf.', COL.barrio_policia],
+  ].map(([label, col]) => {
+    const count = d.filter(r => {
+      const v = (r[col]||'').toLowerCase();
+      return v.includes('frecuente') || v.includes('siempre');
+    }).length;
+    return [label, Math.round(count/n*100)];
+  }).sort((a,b)=>b[1]-a[1]);
+
+  hbars('hbarBarrio', barrioItems, 'rust');
+  const iBarrio = document.getElementById('iBarrio');
+  if (iBarrio && barrioItems.length) iBarrio.innerHTML = `<strong>Hallazgo clave:</strong> <em>${barrioItems[0][0]}</em> es la situación más frecuente en los barrios (${barrioItems[0][1]}% la reportan).`;
+
+  const hogarItems = [
+    ['Seguridad física en hogar', COL.hogar_seg],
+    ['Respeto y convivencia', COL.hogar_respeto],
+  ].map(([label, col]) => {
+    const count = d.filter(r => {
+      const v = (r[col]||'').toLowerCase();
+      return v.includes('siempre') || v.includes('casi siempre');
+    }).length;
+    return [label, Math.round(count/n*100)];
+  });
+  hbars('hbarHogar', hogarItems, 'green');
+
+  const vf = freq(d, COL.violencia);
+  const ve = sortedEntries(vf);
+  makeChart('cViolencia','doughnut', ve.map(e=>e[0]), ve.map(e=>e[1]), COLORS.mixed);
+
+  const suf = freqMulti(d, COL.saludUrgente);
+  const sue = sortedEntries(suf, 7);
+  makeChart('cSaludUrgente','bar', sue.map(e=>wrapLabel(e[0])), sue.map(e=>e[1]), COLORS.green, { horizontal: true });
+
+  // === PARTICIPACIÓN ===
+  const cmjf = freq(d, COL.CMJ);
+  const cmje = sortedEntries(cmjf);
+  makeChart('cCMJ','doughnut', cmje.map(e=>e[0]), cmje.map(e=>e[1]), COLORS.mixed);
+  const noConoce = d.filter(r => (r[COL.CMJ]||'').toLowerCase().includes('no')).length;
+  const iCMJ = document.getElementById('iCMJ');
+  if (iCMJ) iCMJ.innerHTML = `<strong>Hallazgo clave:</strong> El <strong>${Math.round(noConoce/n*100)}%</strong> no conoce el CMJ ni la Plataforma de Juventudes.`;
+
+  const posf = freq(d, COL.posicion);
+  const pose = sortedEntries(posf, 6);
+  makeChart('cPosicion','bar', pose.map(e=>wrapLabel(e[0])), pose.map(e=>e[1]), COLORS.gold, { horizontal: true });
+
+  const incf = freq(d, COL.incluido);
+  const ince = sortedEntries(incf);
+  makeChart('cIncluido','bar', ince.map(e=>e[0]), ince.map(e=>e[1]), COLORS.warm);
+
+  const facf = freqMulti(d, COL.factores);
+  const face = sortedEntries(facf, 7);
+  makeChart('cFactores','bar', face.map(e=>wrapLabel(e[0])), face.map(e=>e[1]), COLORS.green, { horizontal: true });
+
+  // === PRIORIDADES ===
+  const prf = freqMulti(d, COL.prioridades);
+  const pre = sortedEntries(prf, 10);
+  const prPct = pre.map(e => Math.round(e[1]/n*100));
+  makeChart('cPrioridades','bar', pre.map(e=>wrapLabel(e[0])), prPct, pre.map((_,i)=>COLORS.warm[i%6]), { horizontal: true });
+  const iPr = document.getElementById('iPrioridades');
+  if (iPr && pre.length) iPr.innerHTML = `<strong>Hallazgo clave:</strong> <em>${pre[0][0]}</em> es la línea de acción más priorizada por los jóvenes (${prPct[0]}% del total).`;
+
+  const idf = freq(d, COL.ident);
+  const ide = sortedEntries(idf);
+  makeChart('cIdent','bar', ide.map(e=>e[0]), ide.map(e=>e[1]), COLORS.gold);
+
+  const obf = freq(d, COL.obstaculo);
+  const obe = sortedEntries(obf, 7);
+  makeChart('cObstaculo','bar', obe.map(e=>wrapLabel(e[0])), obe.map(e=>e[1]), COLORS.warm, { horizontal: true });
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+loadData();
+</script>
+</body>
+</html>
